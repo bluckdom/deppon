@@ -6,8 +6,10 @@ import router from './router'
 import Antd from 'ant-design-vue'
 import 'ant-design-vue/dist/antd.css'
 import '../static/css/style.css'
+import vueResource from 'vue-resource'
 Vue.config.productionTip = false
 Vue.use(Antd)
+Vue.use(vueResource)
 /* eslint-disable no-new */
 new Vue({
   el: '#app',
