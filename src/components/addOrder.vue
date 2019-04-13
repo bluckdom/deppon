@@ -1,6 +1,26 @@
 <template>
   <div class="container">
     <h3 class="tc mt20 toptitle">德邦快递下单处理</h3>
+    <div class="oh mt20">
+      <a-col :xs="24" :lg="6">
+        <div class="fieldname">
+          <span>*</span>来源单据类型
+        </div>
+        <div class="inputbox">
+          <a-select v-model="srctype" style="width: 100%" @change="srcpk=''">
+            <a-select-option v-for="i in srctypes" :key="i.value">{{i.name}}</a-select-option>
+          </a-select>
+        </div>
+      </a-col>
+      <a-col :xs="24" :lg="6" v-if="srctype!== '3'">
+        <div class="fieldname">
+          <span>*</span>来源单据主键
+        </div>
+        <div class="inputbox">
+          <a-input v-model="srcpk" placeholder="货物名称"></a-input>
+        </div>
+      </a-col>
+    </div>
     <div class="depponbox mt20 oh">
       <a-row>
         <a-col :xs="24" :lg="6">
@@ -286,6 +306,9 @@ export default {
   name: 'addOrder',
   data () {
     return {
+      srctype: '3',
+      srctypes: [],
+      srcpk: '',
       subordedr: false,
       columns: [{
         title: '名称',
@@ -353,11 +376,18 @@ export default {
   },
   mounted () {
     this.fetch()
-    this.$http.get('/test/deppon/getNameinfo.jsp').then(res => {
+    // /test/deppon/getNameinfo.jsp
+    // http://localhost/hrm.json
+    this.$http.get('http://localhost/hrm.json').then(res => {
       res = res.body
-      this.sender.name = res.name
-      this.sender.mobile = res.mobile
+      this.srctypes = res.srctypes
     })
+    let srctype = this.$route.query.srctype
+    let srcpk = this.$route.query.srcpk
+    if (srctype !== undefined && srctype !== '') {
+      this.srctype = srctype
+      this.srcpk = srcpk
+    }
   },
   methods: {
     changelinkman (v) {
@@ -483,6 +513,12 @@ export default {
         this.data = res.cust
         this.pagination = pagination
       })
+    }
+  },
+  watch: {
+    $route (to, from) {
+      this.srctype = to.query.srctype
+      this.srcpk = to.query.srcpk
     }
   }
 }
