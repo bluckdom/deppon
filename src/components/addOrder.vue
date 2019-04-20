@@ -1,5 +1,22 @@
 <template>
   <div class="container">
+    <div class="padding15 mt15 container-fluid">
+      <a-modal
+        v-model="addcork"
+        width="80%"
+        title="添加协作"
+      >
+        <iframe src="/cowork/AddCoWork_other.jsp?from=other&typeid=24" frameborder="0" width="100%" height="500"></iframe>
+        <template slot="footer">
+          <a-button @click="addcork=false">取消</a-button>
+        </template>
+      </a-modal>
+      <div class="fr addso">
+        <a @click="addcork = true">新增协作</a>
+        |
+        <a href="/cowork/CoworkMain.jsp?layout=1&mainid=&typeid=24&type=all&jointype=&labelid=&name=&coworkid=" target="_blank">报价单功能讨论<a-icon type="question-circle" /></a>
+      </div>
+    </div>
     <h3 class="tc mt20 toptitle">德邦快递下单处理</h3>
     <div class="oh mt20">
       <a-col :xs="24" :lg="6">
@@ -73,30 +90,12 @@
         </a-col>
         <a-col :xs="24" :lg="6">
           <div class="fieldname">
-            <span>*</span>总体积
-          </div>
-          <div class="inputbox">
-            <a-input-number v-model="totalVolume" placeholder="总体积"></a-input-number>
-          </div>
-        </a-col>
-        <a-col :xs="24" :lg="6">
-          <div class="fieldname">
-            <span>*</span>总重量
-          </div>
-          <div class="inputbox">
-            <a-input-number v-model="totalWeight" placeholder="总重量"></a-input-number>
-          </div>
-        </a-col>
-        <a-col :xs="24" :lg="6">
-          <div class="fieldname">
             <span>*</span>代收金额
           </div>
           <div class="inputbox">
             <a-input-number v-model="codValue" placeholder="代收金额"></a-input-number>
           </div>
         </a-col>
-      </a-row>
-      <a-row class="mt20">
         <a-col :xs="24" :lg="6">
           <div class="fieldname">
             <span>*</span>上门接货
@@ -105,6 +104,17 @@
             <div class="mt5"><a-switch defaultChecked v-model="vistReceive"/></div>
           </div>
         </a-col>
+        <a-col :xs="24" :lg="6">
+        <div class="fieldname">
+          保价金额
+        </div>
+        <div class="inputbox">
+          <a-input-number v-model="insuranceValue" placeholder="保价金额"></a-input-number>
+        </div>
+      </a-col>
+      </a-row>
+      <a-row class="mt20">
+
         <a-col :xs="24" :lg="6" v-if="codValue > 0">
           <div class="fieldname">
             <span>*</span>代收货款客户账号
@@ -121,13 +131,27 @@
             <a-input v-model="accountName" placeholder="代收货款客户开户名"></a-input>
           </div>
         </a-col>
+
         <a-col :xs="24" :lg="6">
-        <div class="fieldname">
-          保价金额
-        </div>
-        <div class="inputbox">
-          <a-input-number v-model="insuranceValue" placeholder="保价金额"></a-input-number>
-        </div>
+          <div class="fieldname">
+            签收回单
+          </div>
+          <div class="inputbox">
+            <a-select v-model="backSignBill"
+                style="width: 100%">
+              <a-select-option v-for="i in backSignBills" :key="i.id">{{i.name}}</a-select-option>
+            </a-select>
+          </div>
+        </a-col>
+      </a-row>
+      <a-row class="mt20">
+        <a-col :xs="24">
+          <div class="fieldname">
+            备注
+          </div>
+          <div class="inputbox">
+            <a-textarea placeholder="备注" v-model="remark" :autosize="{ minRows: 2, maxRows: 3 }" />
+          </div>
         </a-col>
       </a-row>
       <div class="mt20 tc toptitle "><a-divider>发货人信息</a-divider></div>
@@ -137,7 +161,15 @@
             发货人
           </div>
           <div class="inputbox">
-            <a-input v-model="sender.name" placeholder="发货人姓名"></a-input>
+            <a-select v-model="senderid"
+                      showSearch
+                      placeholder="请选择发货人"
+                      :filterOption="filtersender"
+                      labelInValue
+                      @change="Changesendr"
+                      style="width: 100%">
+              <a-select-option v-for="i in hrms" :key="i.id">{{i.name}}<span style="float:right; font-size: 12px">{{i.py}}</span></a-select-option>
+            </a-select>
           </div>
         </a-col>
         <a-col :xs="24" :lg="6">
@@ -226,6 +258,7 @@
           </div>
           <div class="inputbox">
             <a-input v-model="receiver.name" placeholder="发货人姓名"></a-input>
+
           </div>
         </a-col>
         <a-col :xs="24" :lg="6">
@@ -306,6 +339,7 @@ export default {
   name: 'addOrder',
   data () {
     return {
+      senderid: undefined,
       srctype: '3',
       srctypes: [],
       srcpk: '',
@@ -317,13 +351,14 @@ export default {
         title: '编码',
         dataIndex: 'code'
       }],
-      cargoName: '',
+      cargoName: '机械配件',
       payType: '2',
       payTypes: [
         {id: '1', txt: '收货人付款（到付）'},
         {id: '2', txt: '发货人付款（月结）'}
       ],
-      transportType: 'PACKAGE',
+      remark: '',
+      transportType: 'RCP',
       transportTypes: [
         {id: 'PACKAGE', txt: '标准快递'},
         {id: 'RCP', txt: '360特惠件'},
@@ -349,12 +384,13 @@ export default {
         mobile: '',
         province: '上海',
         city: '上海市',
-        county: '',
-        address: ''
+        county: '静安区',
+        address: '永兴路258弄1号楼503'
       },
       reciveLoanAccount: '',
       accountName: '',
       insuranceValue: 0,
+      hrms: [],
       receiver: {
         name: '',
         mobile: '',
@@ -371,16 +407,23 @@ export default {
       loading: false,
       searchName: '',
       pk_linkman: undefined,
-      pk_linkmans: []
+      pk_linkmans: [],
+      addcork: false,
+      backSignBills: [
+        {id: '0', name: '无需返单'},
+        {id: '1', name: '签收单原件返回'},
+        {id: '2', name: '客户签收单传真返回'},
+        {id: '4', name: '运单到达联传真返回'}
+      ],
+      backSignBill: '0'
     }
   },
   mounted () {
     this.fetch()
-    // /test/deppon/getNameinfo.jsp
-    // http://localhost/hrm.json
-    this.$http.get('http://localhost/hrm.json').then(res => {
+    this.$http.get('/test/deppon/getNameinfo.jsp').then(res => {
       res = res.body
       this.srctypes = res.srctypes
+      this.hrms = res.hrm
     })
     let srctype = this.$route.query.srctype
     let srcpk = this.$route.query.srcpk
@@ -389,7 +432,25 @@ export default {
       this.srcpk = srcpk
     }
   },
+  watch: {
+    $route (to, from) {
+      this.srctype = to.query.srctype
+      this.srcpk = to.query.srcpk
+    }
+  },
   methods: {
+    Changesendr (val) {
+      let nameinfo = this.hrms.filter(function (obj) {
+        return val.key === obj.id
+      })
+      this.sender.name = nameinfo[0].name
+      this.sender.mobile = nameinfo[0].mobile
+    },
+    filtersender (input, option) {
+      console.log(option)
+      return option.componentOptions.children[0].text.toLowerCase().indexOf(input.toLowerCase()) >= 0 ||
+        option.componentOptions.children[1].children[0].text.indexOf(input.toLowerCase()) >= 0
+    },
     changelinkman (v) {
       if (!v) {
         this.clearAddress()
@@ -438,19 +499,24 @@ export default {
         totalVolume: this.totalVolume,
         totalWeight: this.totalWeight,
         codType: this.codType,
+        srctype: this.srctype,
+        srcpk: this.srcpk,
         codValue: this.codValue,
         vistReceive: this.vistReceive ? 'Y' : 'N',
         reciveLoanAccount: this.reciveLoanAccount,
         accountName: this.accountName,
         insuranceValue: this.insuranceValue,
         receiver: this.receiver,
-        sender: this.sender
+        sender: this.sender,
+        backSignBill: this.backSignBill,
+        remark: this.remark
       }
-
+      data.receiver.phone = this.receiver.mobile
+      data.sender.phone = this.sender.mobile
       this.$http.post('/test/deppon/addorder.jsp', data).then(res => {
         res = res.body
         if (res.result === 'true') {
-          window.location.reload()
+          window.location.href = 'http://fw.sjl.com.cn/WebReport/ReportServer?reportlet=NC65Report%2FExpress%2FTemplate%2FDepponExpress.cpt&orderid=' + res.modelid
         }
         this.$message.error(res.reason)
         this.subordedr = false
@@ -514,18 +580,12 @@ export default {
         this.pagination = pagination
       })
     }
-  },
-  watch: {
-    $route (to, from) {
-      this.srctype = to.query.srctype
-      this.srcpk = to.query.srcpk
-    }
   }
 }
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style>
+<style scoped>
   .toptitle{font-size: 16px}
   .depponbox{
     background-color: #f7f7f7;
