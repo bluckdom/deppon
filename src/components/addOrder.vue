@@ -15,6 +15,8 @@
         <a @click="addcork = true">新增协作</a>
         |
         <a href="/cowork/CoworkMain.jsp?layout=1&mainid=&typeid=24&type=all&jointype=&labelid=&name=&coworkid=" target="_blank">报价单功能讨论<a-icon type="question-circle" /></a>
+        |
+        <a href="http://fw.sjl.com.cn/knowledgeMap/base/MapView.jsp?mapId=6" target="_blank">帮助中心<a-icon type="question-circle" /></a>
       </div>
     </div>
     <h3 class="tc mt20 toptitle">德邦快递下单处理</h3>
@@ -217,6 +219,16 @@
       </a-row>
       <div class="mt20 tc toptitle "><a-divider>收货人信息</a-divider></div>
       <a-row class="mt20">
+        <a-col :xs="24" :lg="6">
+          <div class="fieldname">
+            销售组织
+          </div>
+          <div class="inputbox">
+            <a-select v-model="pk_org" style="width: 100%" @change="handleSearch">
+              <a-select-option v-for="i in pk_orgs" :key="i.pk">{{i.name}}</a-select-option>
+            </a-select>
+          </div>
+        </a-col>
         <a-col :xs="24" :lg="10">
           <div class="fieldname">
             客户名称
@@ -237,17 +249,21 @@
             >
               <a-select-option v-for="d in custoemrlist" :key="d.pk">{{d.value}}</a-select-option>
             </a-select>
-            <a-button shape="circle" @click="listvisible=true" icon="search" />
+            <a-button shape="circle" @click="openDialog" icon="search" />
           </div>
         </a-col>
-        <a-col :xs="24" :lg="6">
+        <a-col :xs="24" :lg="8">
           <div class="fieldname">
             选择联系人
           </div>
           <div class="inputbox">
-            <a-select v-model="pk_linkman" allowClear style="width: 100%" @change="changelinkman">
+            <a-select v-model="pk_linkman" allowClear style="width: 60%;" @change="changelinkman">
               <a-select-option v-for="i in pk_linkmans" :key="i.pk_linkman">{{i.name}}</a-select-option>
             </a-select>
+            <a-button-group>
+              <a-button type="primary" icon="edit" size="small" title="修改"/>
+              <a-button type="primary" icon="user-add" size="small" title="添加"/>
+            </a-button-group>
           </div>
         </a-col>
       </a-row>
@@ -258,7 +274,6 @@
           </div>
           <div class="inputbox">
             <a-input v-model="receiver.name" placeholder="发货人姓名"></a-input>
-
           </div>
         </a-col>
         <a-col :xs="24" :lg="6">
@@ -415,7 +430,9 @@ export default {
         {id: '2', name: '客户签收单传真返回'},
         {id: '4', name: '运单到达联传真返回'}
       ],
-      backSignBill: '0'
+      backSignBill: '0',
+      pk_org: undefined,
+      pk_orgs: []
     }
   },
   mounted () {
@@ -431,6 +448,13 @@ export default {
       this.srctype = srctype
       this.srcpk = srcpk
     }
+    // /test/customerVue/orgs.jsp
+    // http://localhost/orgs.json
+    this.$http.get('/test/customerVue/orgs.jsp').then(res => {
+      this.pk_orgs = res.body
+    }).catch(res => {
+      console.log(res)
+    })
   },
   watch: {
     $route (to, from) {
@@ -439,6 +463,10 @@ export default {
     }
   },
   methods: {
+    openDialog () {
+      this.listvisible = true
+      this.fetch()
+    },
     Changesendr (val) {
       let nameinfo = this.hrms.filter(function (obj) {
         return val.key === obj.id
@@ -525,7 +553,7 @@ export default {
     handleSearch (value) {
       // http://localhost/orgs.json
       // /test/customerVue/searchCustname.jsp
-      this.$http.get('/test/customerVue/searchCustname.jsp?q=' + value).then(res => {
+      this.$http.get('/test/customerVue/searchCustname.jsp?q=' + value + '&pk_org=' + this.pk_org).then(res => {
         res = res.body
         this.custoemrlist = res
       })
@@ -571,7 +599,7 @@ export default {
       this.loading = true
       // http://localhost/List.json
       // /test/customerVue/customerList.jsp
-      this.$http.get('/test/customerVue/customerList.jsp', {params: {name: this.searchName, ...params}}).then(res => {
+      this.$http.get('/test/customerVue/customerList.jsp', {params: {name: this.searchName, org: this.pk_org, ...params}}).then(res => {
         res = res.body
         const pagination = {...this.pagination}
         pagination.total = res.num
