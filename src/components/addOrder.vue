@@ -516,7 +516,7 @@ export default {
       this.$http.post('/test/deppon/addorder.jsp', data).then(res => {
         res = res.body
         if (res.result === 'true') {
-          window.location.reload()
+          window.location.href = 'http://fw.sjl.com.cn/WebReport/ReportServer?reportlet=NC65Report%2FExpress%2FTemplate%2FDepponExpress.cpt&orderid=' + res.modelid
         }
         this.$message.error(res.reason)
         this.subordedr = false
