@@ -47,7 +47,10 @@
             <span>*</span>货物名称
           </div>
           <div class="inputbox">
-            <a-input v-model="cargoName" placeholder="货物名称"></a-input>
+            <a-select v-model="cargoName" style="width: 80%;">
+              <a-select-option v-for="i in materials" :key="i">{{i}}</a-select-option>
+            </a-select>
+            <a title="添加货物名称" style="font-size: 16px" href="http://fw.sjl.com.cn/formmode/view/AddFormMode.jsp?customTreeDataId=null&mainid=0&modeId=146&formId=-284&type=1" target="_blank"><a-icon type="plus-circle" /></a>
           </div>
         </a-col>
         <a-col :xs="24" :lg="6">
@@ -261,8 +264,8 @@
               <a-select-option v-for="i in pk_linkmans" :key="i.pk_linkman">{{i.name}}</a-select-option>
             </a-select>
             <a-button-group>
-              <a-button type="primary" icon="edit" size="small" title="修改"/>
-              <a-button type="primary" icon="user-add" size="small" title="添加"/>
+              <a-button type="primary" icon="edit" size="small" @click="openLinkman('editall')" title="修改"/>
+              <a-button type="primary" icon="user-add" size="small" @click="openLinkman('add')" title="添加"/>
             </a-button-group>
           </div>
         </a-col>
@@ -346,6 +349,140 @@
       >
       </a-table>
     </a-modal>
+    <a-modal
+      :title="linkmantitle"
+      :visible="linkmanvisible"
+      width="800px"
+      @cancel="linkmanvisible=false"
+    >
+      <table class="oh linkman-border" width="100%">
+        <tr>
+          <td>
+            <div class="fieldname">
+              姓名
+            </div>
+            <div class="inputbox">
+              <a-input v-model="editlinkman.name" placeholder="姓名"></a-input>
+            </div>
+          </td>
+          <td>
+            <div class="fieldname">
+              手机
+            </div>
+            <div class="inputbox">
+              <a-input v-model="editlinkman.cell" placeholder="手机"></a-input>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <div class="fieldname">
+              传真
+            </div>
+            <div class="inputbox">
+              <a-input v-model="editlinkman.fax" placeholder="传真"></a-input>
+            </div>
+          </td>
+          <td>
+            <div class="fieldname">
+              邮箱
+            </div>
+            <div class="inputbox">
+              <a-input v-model="editlinkman.email" placeholder="邮箱"></a-input>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <div class="fieldname">
+              电话
+            </div>
+            <div class="inputbox">
+              <a-input v-model="editlinkman.phone" placeholder="电话"></a-input>
+            </div>
+          </td>
+          <td>
+            <div class="fieldname">
+              职位
+            </div>
+            <div class="inputbox">
+              <a-input v-model="editlinkman.vjob" placeholder="职位"></a-input>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <div class="fieldname">
+              省份
+            </div>
+            <div class="inputbox">
+              <a-select v-model="editlinkman.province"
+                        allowClear
+                        style="width: 100%;"
+                        showSearch
+                        placeholder="省份"
+                        :filterOption="addressfilter"
+                        :defaultActiveFirstOption="false"
+                        @change="clearcity"
+                        :notFoundContent="notFoundContent">
+                <a-select-option v-for="i in provinces" :key="i.pk_key">{{i.value}}</a-select-option>
+              </a-select>
+            </div>
+          </td>
+          <td>
+            <div class="fieldname">
+              城市
+            </div>
+            <div class="inputbox">
+              <a-select v-model="editlinkman.city"
+                        allowClear
+                        style="width: 100%;"
+                        showSearch
+                        placeholder="城市"
+                        :defaultActiveFirstOption="false"
+                        optionFilterProp="children"
+                        @change="clearvsections"
+                        :filterOption="addressfilter"
+                        :notFoundContent="notFoundContent">
+                <a-select-option v-for="i in citys" :key="i.pk_key">{{i.value}}</a-select-option>
+              </a-select>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <div class="fieldname">
+              区县
+            </div>
+            <div class="inputbox">
+              <a-select v-model="editlinkman.vsection"
+                        allowClear
+                        style="width: 100%;"
+                        showSearch
+                        placeholder="区县"
+                        :defaultActiveFirstOption="false"
+                        optionFilterProp="children"
+                        :filterOption="addressfilter"
+                        :notFoundContent="notFoundContent">>
+                <a-select-option v-for="i in vsections" :key="i.pk_key">{{i.value}}</a-select-option>
+              </a-select>
+            </div>
+          </td>
+          <td>
+            <div class="fieldname">
+              详细地址
+            </div>
+            <div class="inputbox">
+              <a-input v-model="editlinkman.detailinfo" placeholder="详细地址"></a-input>
+            </div>
+          </td>
+        </tr>
+      </table>
+      <template slot="footer">
+        <a-button key="back" @click="linkmanvisible=false">取消</a-button>
+        <a-button type="primary" @click="savelinkman">保存</a-button>
+      </template>
+    </a-modal>
   </div>
 </template>
 
@@ -354,6 +491,8 @@ export default {
   name: 'addOrder',
   data () {
     return {
+      linkmantitle: '',
+      notFoundContent: '无数据',
       senderid: undefined,
       srctype: '3',
       srctypes: [],
@@ -366,7 +505,7 @@ export default {
         title: '编码',
         dataIndex: 'code'
       }],
-      cargoName: '机械配件',
+      cargoName: '',
       payType: '2',
       payTypes: [
         {id: '1', txt: '收货人付款（到付）'},
@@ -431,8 +570,26 @@ export default {
         {id: '4', name: '运单到达联传真返回'}
       ],
       backSignBill: '0',
-      pk_org: undefined,
-      pk_orgs: []
+      pk_org: '',
+      pk_orgs: [],
+      linkmanvisible: false,
+      linktype: '',
+      editlinkman: {
+        cell: '',
+        email: '',
+        fax: '',
+        name: '',
+        phone: '',
+        vjob: '',
+        city: undefined,
+        country: '0001Z010000000079UJJ',
+        province: undefined,
+        vsection: undefined,
+        detailinfo: ''
+      },
+      provinces: [],
+      vsections: [],
+      citys: []
     }
   },
   mounted () {
@@ -441,6 +598,7 @@ export default {
       res = res.body
       this.srctypes = res.srctypes
       this.hrms = res.hrm
+      this.materials = res.materialname
     })
     let srctype = this.$route.query.srctype
     let srcpk = this.$route.query.srcpk
@@ -448,6 +606,13 @@ export default {
       this.srctype = srctype
       this.srcpk = srcpk
     }
+    // http://localhost/province.json
+    this.$http.get('/test/customerVue/getBaseproperty.jsp?type=linkman&name=province').then(res => {
+      res = res.body
+      this.provinces = res
+    }).catch(res => {
+      console.log(res.body)
+    })
     // /test/customerVue/orgs.jsp
     // http://localhost/orgs.json
     this.$http.get('/test/customerVue/orgs.jsp').then(res => {
@@ -463,6 +628,132 @@ export default {
     }
   },
   methods: {
+    addressfilter (input, option) {
+      return option.componentOptions.children[0].text.toLowerCase().indexOf(input.toLowerCase()) >= 0
+    },
+    savelinkman () {
+      if (this.pk_customer) {
+        let data = {...this.editlinkman}
+        if (data.name.length > 1 && (data.cell.length > 1 || data.phone.length > 1) && data.province && data.city && data.vsection) {
+          data.type = this.linktype
+          data.pk_customer = this.pk_customer
+          if (data.type === 'editall') {
+            data.pk_linkman = this.pk_linkman
+          }
+          this.$http.post('/test/customer/linkman/editlinkman.jsp', data, {emulateJSON: true}).then(res => {
+            res = res.body
+            if (res.errno === 1) {
+              this.$message.success(res.txt)
+              this.pk_linkman = res.pk_linkman
+              // 重新获取linkman数据
+              this.changelinkman(res.pk_linkman)
+              // 刷新下拉菜单
+              this.$http.get('/test/customerVue/linkman/getLinkmans.jsp?pk_customer=' + this.pk_customer).then(res => {
+                res = res.body
+                this.pk_linkmans = res.linkman
+              })
+              this.linkmanvisible = false
+            } else {
+              this.$message.error(res.txt)
+            }
+          }).catch(res => {
+            console.log(res)
+            this.linkmanvisible = false
+          })
+        } else {
+          this.$message.error('姓名、电话(手机)、省份、城市和详细地址必需填写')
+        }
+      } else {
+        this.$message.error('请选择客户')
+      }
+    },
+    clearcity (a) {
+      if (!a) {
+        this.citys = []
+      } else {
+        this.$http.get('/test/customerVue/getBaseproperty.jsp?type=linkman&name=city&parent=' + a).then(res => {
+          res = res.body
+          this.citys = res
+        }).catch(res => {
+          console.log(res.body)
+        })
+      }
+      this.editlinkman.city = undefined
+      this.clearvsections()
+    },
+    clearvsections (a) {
+      if (!a) {
+        this.vsections = []
+      } else {
+        this.$http.get('/test/customerVue/getBaseproperty.jsp?type=linkman&name=city&parent=' + a).then(res => {
+          res = res.body
+          this.vsections = res
+        }).catch(res => {
+          console.log(res.body)
+        })
+      }
+      this.editlinkman.vsection = undefined
+    },
+    openLinkman (a) {
+      if (a === 'editall') {
+        if (this.pk_linkman && this.pk_linkman.length > 10) {
+          this.linkmantitle = '编辑联系人'
+          this.linkmanvisible = true
+          this.linktype = a
+          this.$http.get('/test/customerVue/linkman/getLinkman.jsp?pk=' + this.pk_linkman).then(res => {
+            res = res.body.linkman
+            this.editlinkman.cell = res.cell
+            this.editlinkman.email = res.email
+            this.editlinkman.fax = res.fax
+            this.editlinkman.name = res.name
+            this.editlinkman.phone = res.phone
+            this.editlinkman.vjob = res.vjob
+            this.editlinkman.city = res.city
+            this.editlinkman.country = res.country
+            this.editlinkman.province = res.province
+            this.editlinkman.vsection = res.vsection
+            this.editlinkman.detailinfo = res.detailinfo
+            // 重新获取城市信息
+            this.$http.get('/test/customerVue/getBaseproperty.jsp?type=linkman&name=city&parent=' + res.province).then(res => {
+              res = res.body
+              this.citys = res
+            }).catch(res => {
+              console.log(res.body)
+            })
+            // 获取区县
+            this.$http.get('/test/customerVue/getBaseproperty.jsp?type=linkman&name=city&parent=' + res.city).then(res => {
+              res = res.body
+              this.vsections = res
+            }).catch(res => {
+              console.log(res.body)
+            })
+          })
+        } else {
+          this.$message.error('请先选择联系人再编辑')
+        }
+      } else if (a === 'add') {
+        if (!this.pk_customer) {
+          this.$message.error('请先选择客户')
+          return
+        }
+        this.linkmantitle = '新增联系人'
+        this.linktype = a
+        this.linkmanvisible = true
+        this.editlinkman = {
+          cell: '',
+          email: '',
+          fax: '',
+          name: '',
+          phone: '',
+          vjob: '',
+          city: undefined,
+          country: '0001Z010000000079UJJ',
+          province: undefined,
+          vsection: undefined,
+          detailinfo: ''
+        }
+      }
+    },
     openDialog () {
       this.listvisible = true
       this.fetch()
@@ -647,5 +938,9 @@ export default {
   height:100%;}
   .loadingbox > div{
     position: relative;top:50%;margin-top: -15px}
+  .linkman-border{margin:5px;
+    border-bottom: 1px solid #ddd;
+    border-right: 1px solid #ddd;}
+  .linkman-border td{border:1px solid #ddd;padding: 5px 10px}
 
 </style>
