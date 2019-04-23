@@ -487,6 +487,7 @@
 </template>
 
 <script>
+import _ from 'lodash'
 export default {
   name: 'addOrder',
   data () {
@@ -589,7 +590,8 @@ export default {
       },
       provinces: [],
       vsections: [],
-      citys: []
+      citys: [],
+      materials: []
     }
   },
   mounted () {
@@ -777,9 +779,10 @@ export default {
         this.$http.get('/test/customerVue/linkman/getAddress.jsp?pk_linkman=' + v).then(res => {
           res = res.body
           if (res.errno === 1) {
+            let mobile = res.cell === '' ? res.phone : res.cell
             this.receiver = {
               name: res.name,
-              mobile: res.phone,
+              mobile: mobile,
               province: res.province,
               city: res.city,
               county: res.vsection,
@@ -839,16 +842,16 @@ export default {
         }
         this.$message.error(res.reason)
         this.subordedr = false
+      }).catch(res => {
+        this.subordedr = false
       })
     },
-    handleSearch (value) {
-      // http://localhost/orgs.json
-      // /test/customerVue/searchCustname.jsp
+    handleSearch: _.debounce(function (value) {
       this.$http.get('/test/customerVue/searchCustname.jsp?q=' + value + '&pk_org=' + this.pk_org).then(res => {
         res = res.body
         this.custoemrlist = res
       })
-    },
+    }, 500),
     handleChange (value) {
       this.clearCustomerinfo()
       if (!value) {
