@@ -811,7 +811,26 @@ export default {
         }
       }
     },
+    checkPhone (v) {
+      let reg = /^((13[0-9])|(17[0-9])|(14[5|7])|(15([0-3]|[5-9]))|(18[0-9]))\d{8}$|^0\d{2,3}-?\d{7,8}(-\d{1,5}){0,1}$/
+      if (reg.test(v)) {
+        return true
+      } else {
+        return false
+      }
+    },
     addOrder () {
+      let sphone = this.sender.mobile
+      let rphone = this.receiver.mobile
+      if (!this.checkPhone(sphone)) {
+        this.$message.error('发件人电话错误')
+        return false
+      }
+      if (!this.checkPhone(rphone)) {
+        this.$message.error('收件人电话错误')
+        return false
+      }
+
       this.subordedr = true
       let data = {
         cargoName: this.cargoName,
