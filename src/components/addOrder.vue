@@ -554,14 +554,14 @@ export default {
         county: '',
         address: ''
       },
-      pk_customer: undefined,
+      pk_customer: '',
       custoemrlist: [],
       listvisible: false,
       pagination: {},
       data: [],
       loading: false,
       searchName: '',
-      pk_linkman: undefined,
+      pk_linkman: '',
       pk_linkmans: [],
       addcork: false,
       backSignBills: [
@@ -607,6 +607,10 @@ export default {
     if (srctype !== undefined && srctype !== '') {
       this.srctype = srctype
       this.srcpk = srcpk
+    }
+    let pklinkman = this.$route.query.pk_linkman
+    if (pklinkman && pklinkman !== '') {
+      this.changelinkman(pklinkman)
     }
     // http://localhost/province.json
     this.$http.get('/test/customerVue/getBaseproperty.jsp?type=linkman&name=province').then(res => {
@@ -850,16 +854,21 @@ export default {
         receiver: this.receiver,
         sender: this.sender,
         backSignBill: this.backSignBill,
-        remark: this.remark
+        remark: this.remark,
+        pk_org: this.pk_org,
+        pk_customer: this.pk_customer,
+        pk_linkman: this.pk_linkman
       }
       data.receiver.phone = this.receiver.mobile
       data.sender.phone = this.sender.mobile
       this.$http.post('/test/deppon/addorder.jsp', data).then(res => {
         res = res.body
         if (res.result === 'true') {
+          this.$message.success(res.reason)
           window.location.href = 'http://fw.sjl.com.cn/WebReport/ReportServer?reportlet=NC65Report%2FExpress%2FTemplate%2FDepponExpress.cpt&orderid=' + res.modelid
+        } else {
+          this.$message.error(res.reason)
         }
-        this.$message.error(res.reason)
         this.subordedr = false
       }).catch(res => {
         this.subordedr = false
