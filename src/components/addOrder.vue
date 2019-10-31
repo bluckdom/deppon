@@ -496,7 +496,7 @@ export default {
       notFoundContent: '无数据',
       senderid: undefined,
       srctype: '3',
-      srctypes: [],
+      srctypes: [{value: '0', name: '发货单'}, {value: '1', name: '发票'}, {value: '2', name: '出库单'}, {value: '3', name: '手工添加'}],
       srcpk: '',
       subordedr: false,
       columns: [{
@@ -591,7 +591,7 @@ export default {
       provinces: [],
       vsections: [],
       citys: [],
-      materials: []
+      materials: ['配件', '发票', '文件']
     }
   },
   mounted () {
@@ -607,12 +607,34 @@ export default {
     if (srctype !== undefined && srctype !== '') {
       this.srctype = srctype
       this.srcpk = srcpk
+      if (srcpk !== undefined && srcpk !== '') {
+        // 获取发货单数据
+        if (srctype === '0') {
+          // /test/deppon/getSrcDetail.jsp
+          // http://localhost/getSrcDetail.json
+          const params = {
+            srcpk: srcpk, srctype: srctype
+          }
+          this.$http.get('/test/deppon/getSrcDetail.jsp', {params}).then(res => {
+            res = res.body
+            this.pk_org = res.pk_org
+            this.pk_customer = res.cinvoicecustid
+            this.custoemrlist.push({
+              pk: res.cinvoicecustid,
+              value: res.custname
+            })
+            this.handleChange(res.cinvoicecustid, true)
+          })
+        }
+      }
     }
     let pklinkman = this.$route.query.pk_linkman
     if (pklinkman && pklinkman !== '') {
+      this.pk_linkman = pklinkman
       this.changelinkman(pklinkman)
     }
     // http://localhost/province.json
+    // /test/customerVue/getBaseproperty.jsp?type=linkman&name=province
     this.$http.get('/test/customerVue/getBaseproperty.jsp?type=linkman&name=province').then(res => {
       res = res.body
       this.provinces = res
@@ -719,6 +741,7 @@ export default {
             this.editlinkman.province = res.province
             this.editlinkman.vsection = res.vsection
             this.editlinkman.detailinfo = res.detailinfo
+            this.editlinkman.pk_address = res.pk_address
             // 重新获取城市信息
             this.$http.get('/test/customerVue/getBaseproperty.jsp?type=linkman&name=city&parent=' + res.province).then(res => {
               res = res.body
@@ -880,24 +903,24 @@ export default {
         this.custoemrlist = res
       })
     }, 500),
-    handleChange (value) {
-      this.clearCustomerinfo()
+    handleChange (value, noeditlink) {
+      this.clearCustomerinfo(noeditlink)
       if (!value) {
         this.pk_customer = ''
         return
       }
       this.pk_customer = value
-      this.pk_linkmans = []
-      this.pk_linkman = undefined
       this.$http.get('/test/customerVue/linkman/getLinkmans.jsp?pk_customer=' + value).then(res => {
         res = res.body
         this.pk_linkmans = res.linkman
         this.listvisible = false
       })
     },
-    clearCustomerinfo () {
-      this.pk_linkman = undefined
-      this.pk_linkmans = []
+    clearCustomerinfo (noeditlink) {
+      if (!noeditlink) {
+        this.pk_linkman = undefined
+        this.pk_linkmans = []
+      }
       this.clearAddress()
     },
     clearAddress () {
