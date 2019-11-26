@@ -6,7 +6,7 @@
         width="80%"
         title="添加协作"
       >
-        <iframe src="/cowork/AddCoWork_other.jsp?from=other&typeid=24" frameborder="0" width="100%" height="500"></iframe>
+        <iframe src="/spa/custom/static/index.html#/main/cs/app/5c645e9884cf4f459ef86621bbb9451a_newCowork?typeId=24" frameborder="0" width="100%" height="500"></iframe>
         <template slot="footer">
           <a-button @click="addcork=false">取消</a-button>
         </template>
@@ -14,7 +14,7 @@
       <div class="fr addso">
         <a @click="addcork = true">新增协作</a>
         |
-        <a href="/cowork/CoworkMain.jsp?layout=1&mainid=&typeid=24&type=all&jointype=&labelid=&name=&coworkid=" target="_blank">报价单功能讨论<a-icon type="question-circle" /></a>
+        <a href="/spa/cowork/static/index.html#/main/cowork/main/?jointype=0&status=1&typeid=24&viewType=0" target="_blank">快递单功能讨论<a-icon type="question-circle" /></a>
         |
         <a href="http://fw.sjl.com.cn/knowledgeMap/base/MapView.jsp?mapId=6" target="_blank">帮助中心<a-icon type="question-circle" /></a>
       </div>
@@ -37,6 +37,16 @@
         </div>
         <div class="inputbox">
           <a-input v-model="srcpk" placeholder="货物名称"></a-input>
+        </div>
+      </a-col>
+      <a-col :xs="24" :lg="6">
+        <div class="fieldname">
+          <span>*</span>发货地区
+        </div>
+        <div class="inputbox">
+          <a-select v-model="fhadd" style="width: 100%" @change="getfhadd">
+            <a-select-option v-for="i in fhadds" :key="i.id">{{i.company}}</a-select-option>
+          </a-select>
         </div>
       </a-col>
     </div>
@@ -591,7 +601,9 @@ export default {
       provinces: [],
       vsections: [],
       citys: [],
-      materials: ['配件', '发票', '文件']
+      materials: ['配件', '发票', '文件'],
+      fhadds: [],
+      fhadd: ''
     }
   },
   mounted () {
@@ -648,6 +660,17 @@ export default {
     }).catch(res => {
       console.log(res)
     })
+    // 获取发货地区
+    // http://localhost/getFhadd.json
+    // /test/deppon/getFhadd.jsp?type=all
+    this.$http.get('/test/deppon/getFhadd.jsp?type=all').then(res => {
+      this.fhadds = res.body
+    })
+    let fhadd = this.$route.query.fhadd
+    if (fhadd && fhadd !== '') {
+      this.fhadd = fhadd
+      this.getfhadd(fhadd)
+    }
   },
   watch: {
     $route (to, from) {
@@ -656,6 +679,15 @@ export default {
     }
   },
   methods: {
+    getfhadd (id) {
+      this.$http.get('/test/deppon/getFhadd.jsp?id=' + id).then(res => {
+        res = res.body
+        this.sender.province = res.province
+        this.sender.city = res.city
+        this.sender.county = res.county
+        this.sender.address = res.detail
+      })
+    },
     addressfilter (input, option) {
       return option.componentOptions.children[0].text.toLowerCase().indexOf(input.toLowerCase()) >= 0
     },
@@ -857,6 +889,10 @@ export default {
         this.$message.error('收件人电话错误')
         return false
       }
+      if (this.fhadd === '') {
+        this.$message.error('请选择发货地区')
+        return false
+      }
 
       this.subordedr = true
       let data = {
@@ -869,6 +905,7 @@ export default {
         codType: this.codType,
         srctype: this.srctype,
         srcpk: this.srcpk,
+        fhadd: this.fhadd,
         codValue: this.codValue,
         vistReceive: this.vistReceive ? 'Y' : 'N',
         reciveLoanAccount: this.reciveLoanAccount,
