@@ -878,7 +878,24 @@ export default {
         return false
       }
     },
+    searchAddress () {
+      const add = this.receiver.address
+      const params = {
+        keywords: add,
+        city: '全国',
+        offset: 20,
+        page: 1,
+        extensions: 'all',
+        key: '2ab30216bf1b72ed836d4eda9968f7bc'
+      }
+      this.$http.get('https:///restapi.amap.com/v3/place/text', {params: params}).then(res => {
+        res = res.body
+        console.log(res)
+      })
+    },
     addOrder () {
+      this.searchAddress()
+      return
       let sphone = this.sender.mobile
       let rphone = this.receiver.mobile
       if (!this.checkPhone(sphone)) {
