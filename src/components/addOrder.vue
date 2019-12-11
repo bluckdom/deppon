@@ -283,7 +283,7 @@
       <a-row class="mt20">
         <a-col :xs="24" :lg="6">
           <div class="fieldname">
-            收货人
+            <span>*</span>收货人
           </div>
           <div class="inputbox">
             <a-input v-model="receiver.name" placeholder="发货人姓名"></a-input>
@@ -291,7 +291,7 @@
         </a-col>
         <a-col :xs="24" :lg="6">
           <div class="fieldname">
-            手机
+            <span>*</span>手机
           </div>
           <div class="inputbox">
             <a-input v-model="receiver.mobile" placeholder="手机"></a-input>
@@ -299,7 +299,7 @@
         </a-col>
         <a-col :xs="24" :lg="6">
           <div class="fieldname">
-            省份
+            <span>*</span>省份
           </div>
           <div class="inputbox">
             <a-input v-model="receiver.province" placeholder="省份"></a-input>
@@ -307,7 +307,7 @@
         </a-col>
         <a-col :xs="24" :lg="6">
           <div class="fieldname">
-            城市
+            <span>*</span>城市
           </div>
           <div class="inputbox">
             <a-input v-model="receiver.city" placeholder="城市"></a-input>
@@ -317,7 +317,7 @@
       <a-row class="mt20">
         <a-col :xs="24" :lg="6">
           <div class="fieldname">
-            区县
+            <span>*</span>区县
           </div>
           <div class="inputbox">
             <a-input v-model="receiver.county" placeholder="区县"></a-input>
@@ -325,7 +325,7 @@
         </a-col>
         <a-col :xs="24" :lg="18">
           <div class="fieldname">
-            详细地址
+            <span>*</span>详细地址
           </div>
           <div class="inputbox">
             <a-input v-model="receiver.address" placeholder="详细地址"></a-input>
@@ -493,6 +493,20 @@
         <a-button type="primary" @click="savelinkman">保存</a-button>
       </template>
     </a-modal>
+    <a-modal
+      title="请选择"
+      :visible="provinceBox"
+      @cancel="provinceBox=false"
+    >
+      <div class="addbox">
+        <a-radio-group v-model="addtmp" size="large">
+              <a-radio-button v-for="item in addarr" :key="item.id" :style="radioStyle" :value="item.id">{{item.province}}-{{item.city}}-{{item.adname}}</a-radio-button>
+        </a-radio-group>
+      </div>
+      <template slot="footer">
+        <a-button key="back" @click="provinceBox=false">取消</a-button>
+      </template>
+    </a-modal>
   </div>
 </template>
 
@@ -502,6 +516,14 @@ export default {
   name: 'addOrder',
   data () {
     return {
+      radioStyle: {
+        display: 'block',
+        height: '30px',
+        lineHeight: '30px',
+        marginTop: '10px'
+      },
+      addtmp: '',
+      addarr: [],
       linkmantitle: '',
       notFoundContent: '无数据',
       senderid: undefined,
@@ -603,7 +625,8 @@ export default {
       citys: [],
       materials: ['配件', '发票', '文件'],
       fhadds: [],
-      fhadd: ''
+      fhadd: '',
+      provinceBox: false
     }
   },
   mounted () {
@@ -880,17 +903,47 @@ export default {
     },
     searchAddress () {
       const add = this.receiver.address
+      if (add === '') {
+        return
+      }
       const params = {
         keywords: add,
         city: '全国',
-        offset: 20,
+        offset: 40,
         page: 1,
         extensions: 'all',
         key: '2ab30216bf1b72ed836d4eda9968f7bc'
       }
       this.$http.get('https:///restapi.amap.com/v3/place/text', {params: params}).then(res => {
         res = res.body
-        console.log(res)
+        const pois = res.pois
+        let addarr = []
+        if (pois.length > 0) {
+          pois.map((v, i) => {
+            const id = v.id
+            let insert = true
+            const province = v.pname.replace('市', '')
+            const city = v.cityname
+            const adname = v.adname
+            if (addarr.length === 0) {
+              addarr.push({id: id, province: province, city: city, adname: adname})
+            } else {
+              for (const v of addarr) {
+                if (province === v.province && city === v.city && adname === v.adname) {
+                  insert = false
+                  return false
+                }
+              }
+              if (insert) {
+                addarr.push({id: id, province: province, city: city, adname: adname})
+              }
+            }
+          })
+          if (addarr.length > 0) {
+            this.addarr = addarr
+            this.provinceBox = true
+          }
+        }
       })
     },
     addOrder () {
@@ -898,6 +951,10 @@ export default {
       return
       let sphone = this.sender.mobile
       let rphone = this.receiver.mobile
+      if (this.receiver.province === '' || this.receiver.city === '' || this.receiver.county === '') {
+        this.$message.error('请填写省市区/县')
+        return false
+      }
       if (!this.checkPhone(sphone)) {
         this.$message.error('发件人电话错误')
         return false
@@ -910,7 +967,10 @@ export default {
         this.$message.error('请选择发货地区')
         return false
       }
-
+      if (this.receiver.province === '' || this.receiver.city === '' || this.receiver.county === '') {
+        this.$message.error('请填写省市区/县')
+        return false
+      }
       this.subordedr = true
       let data = {
         cargoName: this.cargoName,
@@ -944,7 +1004,8 @@ export default {
           this.$message.success(res.reason)
           window.location.href = 'http://fw.sjl.com.cn/WebReport/ReportServer?reportlet=NC65Report%2FExpress%2FTemplate%2FDepponExpress.cpt&orderid=' + res.modelid
         } else {
-          this.$message.error(res.reason)
+          // this.$message.error(res.reason)
+          this.searchAddress()
         }
         this.subordedr = false
       }).catch(res => {
