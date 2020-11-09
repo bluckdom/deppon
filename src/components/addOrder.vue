@@ -20,10 +20,16 @@
       </div>
     </div>
     <h3 class="tc mt20 toptitle">德邦快递下单处理</h3>
+    <div v-if="showtips" class="mt20 ant-alert ant-alert-warning ant-alert-no-icon ant-alert-closable" >
+      <span class="ant-alert-message" v-html="toptips"/>
+    </div>
+    <div class="mt20 ant-alert ant-alert-warning ant-alert-no-icon ant-alert-closable" >
+      当货物名称为“配件时”，请直接从发货单点击德邦打印
+    </div>
     <div class="oh mt20">
       <a-col :xs="24" :lg="6">
         <div class="fieldname">
-          <span>*</span>来源单据类型
+          <span>*</span>来源单据
         </div>
         <div class="inputbox">
           <a-select v-model="srctype" style="width: 100%" @change="srcpk=''">
@@ -94,7 +100,7 @@
           </div>
         </a-col>
       </a-row>
-      <a-row class="mt20">
+      <a-row>
         <a-col :xs="24" :lg="6">
           <div class="fieldname">
             <span>*</span>总件数
@@ -128,7 +134,7 @@
         </div>
       </a-col>
       </a-row>
-      <a-row class="mt20">
+      <a-row>
 
         <a-col :xs="24" :lg="6" v-if="codValue > 0">
           <div class="fieldname">
@@ -159,7 +165,7 @@
           </div>
         </a-col>
       </a-row>
-      <a-row class="mt20">
+      <a-row>
         <a-col :xs="24">
           <div class="fieldname">
             备注
@@ -170,7 +176,7 @@
         </a-col>
       </a-row>
       <div class="mt20 tc toptitle "><a-divider>发货人信息</a-divider></div>
-      <a-row class="mt20">
+      <a-row>
         <a-col :xs="24" :lg="6">
           <div class="fieldname">
             发货人
@@ -183,7 +189,7 @@
                       labelInValue
                       @change="Changesendr"
                       style="width: 100%">
-              <a-select-option v-for="i in hrms" :key="i.id">{{i.name}}<span style="float:right; font-size: 12px">{{i.py}}</span></a-select-option>
+              <a-select-option v-for="i in hrms" :value="i.id" :key="i.id">{{i.name}}<span style="float:right; font-size: 12px">{{i.py}}</span></a-select-option>
             </a-select>
           </div>
         </a-col>
@@ -200,7 +206,7 @@
             省份
           </div>
           <div class="inputbox">
-            <a-input v-model="sender.province" placeholder="省份"></a-input>
+            <a-input disabled v-model="sender.province" placeholder="省份"></a-input>
           </div>
         </a-col>
         <a-col :xs="24" :lg="6">
@@ -208,17 +214,17 @@
             城市
           </div>
           <div class="inputbox">
-            <a-input v-model="sender.city" placeholder="城市"></a-input>
+            <a-input disabled v-model="sender.city" placeholder="城市"></a-input>
           </div>
         </a-col>
       </a-row>
-      <a-row class="mt20">
+      <a-row>
         <a-col :xs="24" :lg="6">
           <div class="fieldname">
             区县
           </div>
           <div class="inputbox">
-            <a-input v-model="sender.county" placeholder="区县"></a-input>
+            <a-input disabled v-model="sender.county" placeholder="区县"></a-input>
           </div>
         </a-col>
         <a-col :xs="24" :lg="18">
@@ -231,10 +237,10 @@
         </a-col>
       </a-row>
       <div class="mt20 tc toptitle "><a-divider>收货人信息</a-divider></div>
-      <a-row class="mt20">
+      <a-row>
         <a-col :xs="24" :lg="6">
           <div class="fieldname">
-            销售组织
+            <span>*</span>销售组织
           </div>
           <div class="inputbox">
             <a-select v-model="pk_org" style="width: 100%" @change="handleSearch">
@@ -271,19 +277,19 @@
           </div>
           <div class="inputbox">
             <a-select v-model="pk_linkman" allowClear style="width: 60%;" @change="changelinkman">
-              <a-select-option v-for="i in pk_linkmans" :key="i.pk_linkman">{{i.name}}</a-select-option>
+              <a-select-option v-for="i in pk_linkmans" :key="i.pk_linkman">{{i.name}} <span v-if="i.memo !==''">({{i.memo}})</span></a-select-option>
             </a-select>
             <a-button-group>
-              <a-button type="primary" icon="edit" size="small" @click="openLinkman('editall')" title="修改"/>
-              <a-button type="primary" icon="user-add" size="small" @click="openLinkman('add')" title="添加"/>
+              <a-button type="primary" icon="edit" size="small" @click="openLinkman('editall')" title="修改"></a-button>
+              <a-button type="primary" icon="user-add" size="small" @click="openLinkman('add')" title="添加"></a-button>
             </a-button-group>
           </div>
         </a-col>
       </a-row>
-      <a-row class="mt20">
+      <a-row>
         <a-col :xs="24" :lg="6">
           <div class="fieldname">
-            <span>*</span>收货人
+            收货人
           </div>
           <div class="inputbox">
             <a-input v-model="receiver.name" placeholder="发货人姓名"></a-input>
@@ -291,7 +297,7 @@
         </a-col>
         <a-col :xs="24" :lg="6">
           <div class="fieldname">
-            <span>*</span>手机
+            手机
           </div>
           <div class="inputbox">
             <a-input v-model="receiver.mobile" placeholder="手机"></a-input>
@@ -299,7 +305,7 @@
         </a-col>
         <a-col :xs="24" :lg="6">
           <div class="fieldname">
-            <span>*</span>省份
+            省份
           </div>
           <div class="inputbox">
             <a-input v-model="receiver.province" placeholder="省份"></a-input>
@@ -307,17 +313,17 @@
         </a-col>
         <a-col :xs="24" :lg="6">
           <div class="fieldname">
-            <span>*</span>城市
+            城市
           </div>
           <div class="inputbox">
             <a-input v-model="receiver.city" placeholder="城市"></a-input>
           </div>
         </a-col>
       </a-row>
-      <a-row class="mt20">
-        <a-col :xs="24" :lg="6">
+      <a-row>
+        <a-col :xs="24" :lg="6" class="mt15">
           <div class="fieldname">
-            <span>*</span>区县
+            区县
           </div>
           <div class="inputbox">
             <a-input v-model="receiver.county" placeholder="区县"></a-input>
@@ -325,7 +331,7 @@
         </a-col>
         <a-col :xs="24" :lg="18">
           <div class="fieldname">
-            <span>*</span>详细地址
+            详细地址
           </div>
           <div class="inputbox">
             <a-input v-model="receiver.address" placeholder="详细地址"></a-input>
@@ -387,10 +393,10 @@
         <tr>
           <td>
             <div class="fieldname">
-              传真
+              备注
             </div>
             <div class="inputbox">
-              <a-input v-model="editlinkman.fax" placeholder="传真"></a-input>
+              <a-input v-model="editlinkman.memo" placeholder="备注"></a-input>
             </div>
           </td>
           <td>
@@ -493,20 +499,6 @@
         <a-button type="primary" @click="savelinkman">保存</a-button>
       </template>
     </a-modal>
-    <a-modal
-      title="请选择"
-      :visible="provinceBox"
-      @cancel="provinceBox=false"
-    >
-      <div class="addbox">
-        <a-radio-group v-model="addtmp" size="large">
-              <a-radio-button v-for="item in addarr" :key="item.id" :style="radioStyle" :value="item.id">{{item.province}}-{{item.city}}-{{item.adname}}</a-radio-button>
-        </a-radio-group>
-      </div>
-      <template slot="footer">
-        <a-button key="back" @click="provinceBox=false">取消</a-button>
-      </template>
-    </a-modal>
   </div>
 </template>
 
@@ -516,19 +508,13 @@ export default {
   name: 'addOrder',
   data () {
     return {
-      radioStyle: {
-        display: 'block',
-        height: '30px',
-        lineHeight: '30px',
-        marginTop: '10px'
-      },
-      addtmp: '',
-      addarr: [],
+      showtips: false,
+      toptips: '',
       linkmantitle: '',
       notFoundContent: '无数据',
-      senderid: undefined,
+      senderid: '',
       srctype: '3',
-      srctypes: [{value: '0', name: '发货单'}, {value: '1', name: '发票'}, {value: '2', name: '出库单'}, {value: '3', name: '手工添加'}],
+      srctypes: [{value: '0', name: '发货单'}, {value: '1', name: '发票'}, {value: '2', name: '出库单'}, {value: '3', name: '手工添加'}, {value: '4', name: '维修单'}],
       srcpk: '',
       subordedr: false,
       columns: [{
@@ -569,7 +555,7 @@ export default {
       sender: {
         name: '',
         mobile: '',
-        province: '上海',
+        province: '上海市',
         city: '上海市',
         county: '静安区',
         address: '永兴路258弄1号楼503'
@@ -610,7 +596,7 @@ export default {
       editlinkman: {
         cell: '',
         email: '',
-        fax: '',
+        memo: '',
         name: '',
         phone: '',
         vjob: '',
@@ -625,20 +611,32 @@ export default {
       citys: [],
       materials: ['配件', '发票', '文件'],
       fhadds: [],
-      fhadd: '',
-      provinceBox: false
+      fhadd: ''
     }
   },
   mounted () {
     this.fetch()
-    this.$http.get('/test/deppon/getNameinfo.jsp').then(res => {
+    const that = this
+    this.$http.get('/mobile/plugin/test/deppon/getNameinfo.jsp').then(res => {
       res = res.body
       this.srctypes = res.srctypes
       this.hrms = res.hrm
       this.materials = res.materialname
+      this.cargoName = res.materialname[0]
+      res.hrm.map(v => {
+        if (v.default) {
+          that.senderid = {
+            key: v.id,
+            label: v.name
+          }
+          that.sender.name = v.name
+          that.sender.mobile = v.mobile
+        }
+      })
     })
     let srctype = this.$route.query.srctype
     let srcpk = this.$route.query.srcpk
+    let linkman = this.$route.query.pk_linkman
     if (srctype !== undefined && srctype !== '') {
       this.srctype = srctype
       this.srcpk = srcpk
@@ -650,27 +648,63 @@ export default {
           const params = {
             srcpk: srcpk, srctype: srctype
           }
-          this.$http.get('/test/deppon/getSrcDetail.jsp', {params}).then(res => {
+          this.$http.get('/mobile/plugin/test/deppon/getSrcDetail.jsp', {params}).then(res => {
             res = res.body
+            let fhadd = res.fhadd
+            if (fhadd && fhadd !== '') {
+              this.fhadd = fhadd
+              this.getfhadd(fhadd)
+            }
+            if (res.vdef6 === '1') {
+              this.payType = '1'
+            }
             this.pk_org = res.pk_org
+            this.showtips = res.showtips
+            this.toptips = res.toptips
             this.pk_customer = res.cinvoicecustid
+            this.backSignBill = res.def9 ? '1' : '0'
+            if (res.pk_linkman && res.pk_linkman !== '') {
+              this.pk_linkman = res.pk_linkman
+              this.changelinkman(res.pk_linkman)
+            }
             this.custoemrlist.push({
               pk: res.cinvoicecustid,
               value: res.custname
             })
             this.handleChange(res.cinvoicecustid, true)
           })
+        } else {
+          if (linkman && linkman !== '') {
+            this.pk_linkman = linkman
+            this.changelinkman(linkman)
+          }
+        }
+        let pkCustomer = this.$route.query.pk_customer
+        let pkOrg = this.$route.query.pk_org
+        if (pkOrg && pkOrg !== '') {
+          this.pk_org = pkOrg
+        }
+        if (pkCustomer && pkCustomer !== '') {
+          // 获取客户联系人信息
+          this.pk_customer = pkCustomer
+          this.$http.get('/test/customerVue/custinfo.jsp?pk=' + pkCustomer).then(res => {
+            res = res.body
+            this.custoemrlist.push({
+              pk: pkCustomer,
+              value: res.name
+            })
+            this.$http.get('/mobile/plugin/test/customerVue/linkman/getLinkmans.jsp?pk_customer=' + pkCustomer).then(res => {
+              res = res.body
+              this.pk_linkmans = res.linkman
+            })
+          })
         }
       }
     }
-    let pklinkman = this.$route.query.pk_linkman
-    if (pklinkman && pklinkman !== '') {
-      this.pk_linkman = pklinkman
-      this.changelinkman(pklinkman)
-    }
+
     // http://localhost/province.json
     // /test/customerVue/getBaseproperty.jsp?type=linkman&name=province
-    this.$http.get('/test/customerVue/getBaseproperty.jsp?type=linkman&name=province').then(res => {
+    this.$http.get('/mobile/plugin/test/customerVue/getBaseproperty.jsp?type=linkman&name=province').then(res => {
       res = res.body
       this.provinces = res
     }).catch(res => {
@@ -678,7 +712,7 @@ export default {
     })
     // /test/customerVue/orgs.jsp
     // http://localhost/orgs.json
-    this.$http.get('/test/customerVue/orgs.jsp').then(res => {
+    this.$http.get('/mobile/plugin/test/customerVue/orgs.jsp').then(res => {
       this.pk_orgs = res.body
     }).catch(res => {
       console.log(res)
@@ -686,14 +720,9 @@ export default {
     // 获取发货地区
     // http://localhost/getFhadd.json
     // /test/deppon/getFhadd.jsp?type=all
-    this.$http.get('/test/deppon/getFhadd.jsp?type=all').then(res => {
+    this.$http.get('/mobile/plugin/test/deppon/getFhadd.jsp?type=all').then(res => {
       this.fhadds = res.body
     })
-    let fhadd = this.$route.query.fhadd
-    if (fhadd && fhadd !== '') {
-      this.fhadd = fhadd
-      this.getfhadd(fhadd)
-    }
   },
   watch: {
     $route (to, from) {
@@ -703,7 +732,7 @@ export default {
   },
   methods: {
     getfhadd (id) {
-      this.$http.get('/test/deppon/getFhadd.jsp?id=' + id).then(res => {
+      this.$http.get('/mobile/plugin/test/deppon/getFhadd.jsp?id=' + id).then(res => {
         res = res.body
         this.sender.province = res.province
         this.sender.city = res.city
@@ -723,7 +752,7 @@ export default {
           if (data.type === 'editall') {
             data.pk_linkman = this.pk_linkman
           }
-          this.$http.post('/test/customer/linkman/editlinkman.jsp', data, {emulateJSON: true}).then(res => {
+          this.$http.post('/mobile/plugin/test/customer/linkman/editlinkman.jsp', data, {emulateJSON: true}).then(res => {
             res = res.body
             if (res.errno === 1) {
               this.$message.success(res.txt)
@@ -731,7 +760,7 @@ export default {
               // 重新获取linkman数据
               this.changelinkman(res.pk_linkman)
               // 刷新下拉菜单
-              this.$http.get('/test/customerVue/linkman/getLinkmans.jsp?pk_customer=' + this.pk_customer).then(res => {
+              this.$http.get('/mobile/plugin/test/customerVue/linkman/getLinkmans.jsp?pk_customer=' + this.pk_customer).then(res => {
                 res = res.body
                 this.pk_linkmans = res.linkman
               })
@@ -754,7 +783,7 @@ export default {
       if (!a) {
         this.citys = []
       } else {
-        this.$http.get('/test/customerVue/getBaseproperty.jsp?type=linkman&name=city&parent=' + a).then(res => {
+        this.$http.get('/mobile/plugin/test/customerVue/getBaseproperty.jsp?type=linkman&name=city&parent=' + a).then(res => {
           res = res.body
           this.citys = res
         }).catch(res => {
@@ -768,7 +797,7 @@ export default {
       if (!a) {
         this.vsections = []
       } else {
-        this.$http.get('/test/customerVue/getBaseproperty.jsp?type=linkman&name=city&parent=' + a).then(res => {
+        this.$http.get('/mobile/plugin/test/customerVue/getBaseproperty.jsp?type=linkman&name=city&parent=' + a).then(res => {
           res = res.body
           this.vsections = res
         }).catch(res => {
@@ -783,11 +812,11 @@ export default {
           this.linkmantitle = '编辑联系人'
           this.linkmanvisible = true
           this.linktype = a
-          this.$http.get('/test/customerVue/linkman/getLinkman.jsp?pk=' + this.pk_linkman).then(res => {
+          this.$http.get('/mobile/plugin/test/customerVue/linkman/getLinkman.jsp?pk=' + this.pk_linkman).then(res => {
             res = res.body.linkman
             this.editlinkman.cell = res.cell
             this.editlinkman.email = res.email
-            this.editlinkman.fax = res.fax
+            this.editlinkman.memo = res.memo
             this.editlinkman.name = res.name
             this.editlinkman.phone = res.phone
             this.editlinkman.vjob = res.vjob
@@ -798,14 +827,14 @@ export default {
             this.editlinkman.detailinfo = res.detailinfo
             this.editlinkman.pk_address = res.pk_address
             // 重新获取城市信息
-            this.$http.get('/test/customerVue/getBaseproperty.jsp?type=linkman&name=city&parent=' + res.province).then(res => {
+            this.$http.get('/mobile/plugin/test/customerVue/getBaseproperty.jsp?type=linkman&name=city&parent=' + res.province).then(res => {
               res = res.body
               this.citys = res
             }).catch(res => {
               console.log(res.body)
             })
             // 获取区县
-            this.$http.get('/test/customerVue/getBaseproperty.jsp?type=linkman&name=city&parent=' + res.city).then(res => {
+            this.$http.get('/mobile/plugin/test/customerVue/getBaseproperty.jsp?type=linkman&name=city&parent=' + res.city).then(res => {
               res = res.body
               this.vsections = res
             }).catch(res => {
@@ -826,7 +855,7 @@ export default {
         this.editlinkman = {
           cell: '',
           email: '',
-          fax: '',
+          memo: '',
           name: '',
           phone: '',
           vjob: '',
@@ -858,7 +887,7 @@ export default {
       if (!v) {
         this.clearAddress()
       } else {
-        this.$http.get('/test/customerVue/linkman/getAddress.jsp?pk_linkman=' + v).then(res => {
+        this.$http.get('/mobile/plugin/test/customerVue/linkman/getAddress.jsp?pk_linkman=' + v).then(res => {
           res = res.body
           if (res.errno === 1) {
             let mobile = res.cell === '' ? res.phone : res.cell
@@ -894,67 +923,20 @@ export default {
       }
     },
     checkPhone (v) {
-      let reg = /^((13[0-9])|(17[0-9])|(14[5|7])|(15([0-3]|[5-9]))|(18[0-9]))\d{8}$|^0\d{2,3}-?\d{7,8}(-\d{1,5}){0,1}$/
+      let reg = /^((13[0-9])|(17[0-9])|(19[0-9])|(14[5|7])|(15([0-3]|[5-9]))|(18[0-9]))\d{8}$|^0\d{2,3}-?\d{7,8}(-\d{1,5}){0,1}$/
       if (reg.test(v)) {
         return true
       } else {
         return false
       }
     },
-    searchAddress () {
-      const add = this.receiver.address
-      if (add === '') {
+    addOrder () {
+      if (this.cargoName === '配件' && (this.srctype === 3 || this.srcpk === '')) {
+        this.$message.error('当货物名称为配件时，必须选择来源类型和单据pk')
         return
       }
-      const params = {
-        keywords: add,
-        city: '全国',
-        offset: 40,
-        page: 1,
-        extensions: 'all',
-        key: '2ab30216bf1b72ed836d4eda9968f7bc'
-      }
-      this.$http.get('https:///restapi.amap.com/v3/place/text', {params: params}).then(res => {
-        res = res.body
-        const pois = res.pois
-        let addarr = []
-        if (pois.length > 0) {
-          pois.map((v, i) => {
-            const id = v.id
-            let insert = true
-            const province = v.pname.replace('市', '')
-            const city = v.cityname
-            const adname = v.adname
-            if (addarr.length === 0) {
-              addarr.push({id: id, province: province, city: city, adname: adname})
-            } else {
-              for (const v of addarr) {
-                if (province === v.province && city === v.city && adname === v.adname) {
-                  insert = false
-                  return false
-                }
-              }
-              if (insert) {
-                addarr.push({id: id, province: province, city: city, adname: adname})
-              }
-            }
-          })
-          if (addarr.length > 0) {
-            this.addarr = addarr
-            this.provinceBox = true
-          }
-        }
-      })
-    },
-    addOrder () {
-      this.searchAddress()
-      return
       let sphone = this.sender.mobile
       let rphone = this.receiver.mobile
-      if (this.receiver.province === '' || this.receiver.city === '' || this.receiver.county === '') {
-        this.$message.error('请填写省市区/县')
-        return false
-      }
       if (!this.checkPhone(sphone)) {
         this.$message.error('发件人电话错误')
         return false
@@ -967,8 +949,8 @@ export default {
         this.$message.error('请选择发货地区')
         return false
       }
-      if (this.receiver.province === '' || this.receiver.city === '' || this.receiver.county === '') {
-        this.$message.error('请填写省市区/县')
+      if (this.pk_org === '') {
+        this.$message.error('请选择销售组织')
         return false
       }
       this.subordedr = true
@@ -998,14 +980,18 @@ export default {
       }
       data.receiver.phone = this.receiver.mobile
       data.sender.phone = this.sender.mobile
-      this.$http.post('/test/deppon/addorder.jsp', data).then(res => {
+      this.$http.post('/mobile/plugin/test/deppon/addorder.jsp', data).then(res => {
         res = res.body
         if (res.result === 'true') {
           this.$message.success(res.reason)
-          window.location.href = 'http://fw.sjl.com.cn/WebReport/ReportServer?reportlet=NC65Report%2FExpress%2FTemplate%2FDepponExpress.cpt&orderid=' + res.modelid
+          const province = data.sender.province
+          if (province === '江苏省' || province === '江苏') {
+            window.location.href = '/webroot/decision/view/report?viewlet=NC65Report%2FExpress%2FTemplate%2FDepponExpress_130.cpt&orderid=' + res.modelid
+          } else {
+            window.location.href = '/webroot/decision/view/report?viewlet=NC65Report%2FExpress%2FTemplate%2FDepponExpress_180.cpt&orderid=' + res.modelid
+          }
         } else {
-          // this.$message.error(res.reason)
-          this.searchAddress()
+          this.$message.error(res.reason)
         }
         this.subordedr = false
       }).catch(res => {
@@ -1013,7 +999,7 @@ export default {
       })
     },
     handleSearch: _.debounce(function (value) {
-      this.$http.get('/test/customerVue/searchCustname.jsp?q=' + value + '&pk_org=' + this.pk_org).then(res => {
+      this.$http.get('/mobile/plugin/test/customerVue/searchCustname.jsp?q=' + value + '&pk_org=' + this.pk_org).then(res => {
         res = res.body
         this.custoemrlist = res
       })
@@ -1025,7 +1011,7 @@ export default {
         return
       }
       this.pk_customer = value
-      this.$http.get('/test/customerVue/linkman/getLinkmans.jsp?pk_customer=' + value).then(res => {
+      this.$http.get('/mobile/plugin/test/customerVue/linkman/getLinkmans.jsp?pk_customer=' + value).then(res => {
         res = res.body
         this.pk_linkmans = res.linkman
         this.listvisible = false
@@ -1059,7 +1045,7 @@ export default {
       this.loading = true
       // http://localhost/List.json
       // /test/customerVue/customerList.jsp
-      this.$http.get('/test/customerVue/customerList.jsp', {params: {name: this.searchName, org: this.pk_org, ...params}}).then(res => {
+      this.$http.get('/mobile/plugin/test/customerVue/customerList.jsp', {params: {name: this.searchName, org: this.pk_org, ...params}}).then(res => {
         res = res.body
         const pagination = {...this.pagination}
         pagination.total = res.num
@@ -1111,5 +1097,6 @@ export default {
     border-bottom: 1px solid #ddd;
     border-right: 1px solid #ddd;}
   .linkman-border td{border:1px solid #ddd;padding: 5px 10px}
-
+  .ant-row .ant-col-xs-24{
+    margin-top: 15px;}
 </style>
